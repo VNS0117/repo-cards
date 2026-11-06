@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Repo Shopping Cards — V1 Demo</title>
+<style>
+:root{color-scheme:light dark;--bg:#f6f7fb;--surface:#fff;--ink:#17202d;--muted:#64748b;--edge:#e4e9ef;--tint:#f5f7fa;--accent:#0e624b;--accent-text:white;--shadow:0 8px 24px rgba(28,42,64,.055)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",Arial,sans-serif}
+main{max-width:760px;margin:auto;padding:28px 18px 65px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap}h1{font-size:24px;letter-spacing:-.5px;margin:0 0 4px}.small{color:var(--muted);font-size:12px;margin:0}.toggle{display:flex;gap:5px;border:1px solid var(--edge);border-radius:11px;padding:4px;background:var(--surface)}.toggle button{border:0;background:transparent;color:var(--muted);padding:7px 16px;border-radius:8px;cursor:pointer;font-weight:600}.toggle button[aria-pressed=true]{background:var(--ink);color:var(--surface)}
+.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}.card{background:var(--surface);border:1px solid var(--edge);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}.identity{display:flex;gap:12px;align-items:flex-start}.logo{width:58px;height:58px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#e4f0f9,#d8f0e7);font-size:25px;flex-shrink:0}.name{font-size:17px;font-weight:700;margin:0}.repo-id{font-size:11px;color:var(--muted);margin:1px 0 7px;word-break:break-all}.pitch{margin:0;font-size:13px;line-height:1.55}.tags{display:flex;gap:6px;flex-wrap:wrap}.tag{font-size:11px;border:1px solid var(--edge);background:var(--tint);border-radius:7px;padding:3px 7px;color:#41546b}.meta{display:flex;gap:9px;flex-wrap:wrap;color:#526176;font-size:11px}.meta span{display:inline-flex;align-items:center;gap:4px}.divider{height:1px;background:var(--edge)}button{font:inherit}.details-button{border:1px solid #d9e1e8;color:#253449;background:var(--surface);border-radius:10px;width:100%;padding:10px 12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600}.details-button:hover,.ghost:hover{background:var(--tint)}.chev{font-size:11px}.details{background:var(--tint);border-radius:12px;padding:14px;display:none}.details.open{display:block}.detail{margin:0 0 12px}.detail:last-child{margin-bottom:0}.detail-title{font-weight:650;font-size:12px;margin:0 0 4px}.detail-body{font-size:12px;line-height:1.58;color:#3c4a5e;margin:0}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{border-radius:10px;padding:10px 8px;border:1px solid #cbd5dd;cursor:pointer;background:var(--surface);font-weight:650;text-align:center;text-decoration:none;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px}.btn.primary{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}.btn:hover{filter:brightness(.96)}.compare{display:flex;justify-content:center;margin-top:22px}.compare button{max-width:450px;width:100%;padding:13px}.note{margin:18px 0 0;padding:12px 14px;color:#56657a;font-size:12px;border-left:3px solid #aebccc}.modal{border:0;border-radius:16px;width:min(600px,calc(100vw - 24px));padding:0;background:var(--surface);color:var(--ink);box-shadow:0 25px 65px rgba(0,0,0,.25)}.modal::backdrop{background:rgba(16,26,41,.5)}.modal-body{padding:24px}.modal h2{margin:0 0 8px;font-size:19px}.modal pre{white-space:pre-wrap;word-break:break-word;background:var(--tint);padding:13px;border-radius:10px;max-height:320px;overflow:auto;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}.bottom{margin-top:22px;font-size:12px;color:var(--muted)}
+@media(max-width:650px){main{padding:20px 12px 50px}.top h1{font-size:21px}.card{padding:16px}}
+@media(prefers-color-scheme:dark){:root{--bg:#12161b;--surface:#1a222c;--ink:#eff5fa;--muted:#9fb0c0;--edge:#34404c;--tint:#222e3a;--accent:#2b906e;--shadow:0 8px 28px rgba(0,0,0,.2)}.tag,.meta,.detail-body,.note{color:#b7c6d5}.details-button{border-color:#435364;color:#eff5fa}}
+/* Native disclosure controls keep keyboard focus and work without re-rendering cards. */
+:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.card{min-width:0}.identity>div:last-child{min-width:0}.logo{color:#0e624b}
+.logo svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.repo-details summary{list-style:none;user-select:none}.repo-details summary::-webkit-details-marker{display:none}
+.chevron{width:7px;height:7px;border-right:1.6px solid;border-bottom:1.6px solid;transform:rotate(45deg);margin-top:-4px}
+.repo-details[open] .chevron{transform:rotate(225deg);margin-top:4px}
+.repo-details .details{display:block;margin-top:12px}.detail-title{font-size:12px}
+.prompt-text{display:block;width:100%;height:220px;min-height:160px;max-height:45vh;resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--tint);color:var(--ink);border:1px solid var(--edge);padding:13px;border-radius:10px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;margin-top:16px}
+.prompt-status{min-height:1.5em;margin:8px 0 0;color:var(--muted);font-size:12px}
+.modal{max-height:calc(100dvh - 24px);overflow:auto}.modal-body{padding:22px}.modal-actions{flex-wrap:wrap}
+.meta a{color:inherit}.meta time{font-size:10px}.meta:empty{display:none}
+@media(max-width:360px){.modal-body{padding:16px}.toggle button{padding:7px 12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div><h1 id="heading">Explore GitHub Repositories</h1><p class="small" id="subheading"></p></div>
+    <div class="toggle" id="languageSwitch" role="group" aria-label="Language">
+      <button id="zhBtn" type="button" lang="zh-CN" aria-pressed="false">中文</button>
+      <button id="enBtn" type="button" lang="en" aria-pressed="true">English</button>
+    </div>
+  </header>
+  <section id="cards" class="cards" aria-label="Repositories"></section>
+  <div class="compare"><button id="compareBtn" class="btn primary" type="button"></button></div>
+  <p class="note" id="disclaimer"></p>
+  <p class="bottom" id="footer"></p>
+  <noscript><p>This demo needs JavaScript for its cards. Use instructions/project.md in ChatGPT for V1. 此演示需要 JavaScript；V1 请使用 instructions/project.md。</p></noscript>
+  <dialog id="promptModal" class="modal" aria-labelledby="modalTitle" aria-describedby="modalHint">
+    <div class="modal-body">
+      <h2 id="modalTitle"></h2><p class="small" id="modalHint"></p>
+      <textarea id="promptPreview" class="prompt-text" readonly spellcheck="false"></textarea>
+      <p id="promptStatus" class="prompt-status" role="status" aria-live="polite"></p>
+      <div class="modal-actions">
+        <button class="btn" id="closeModal" type="button"></button>
+        <button class="btn primary" id="copyPrompt" type="button"></button>
+      </div>
+    </div>
+  </dialog>
+</main>
+<script>
+'use strict';
+// Offline design demo. Summaries are illustrative, not freshly verified GitHub data.
+// V1 itself is installed by copying instructions into ChatGPT, not by loading this file.
+const copy = {
+  en: {
+    heading: 'Explore GitHub Repositories',
+    sub: count => `${count} sample repositories · browse and choose like shopping`,
+    language: 'Language', repositories: 'Repositories',
+    details: 'View details', hide: 'Hide details', analyze: 'Analyze',
+    github: 'GitHub', compare: 'Compare repositories',
+    stars: 'Stars', license: 'License', checked: 'Verified',
+    disclaimer: 'Offline design demo · summaries and categories are illustrative. Unverified stars, licenses, and activity are omitted. Details open locally; Analyze and Compare only prepare a prompt for you to copy.',
+    footer: 'V1 uses ChatGPT instructions. Native cards and controls depend on the client. This HTML is a standalone interaction reference.',
+    modalTitle: 'Ready-to-use follow-up',
+    modalHint: 'Copy this prompt into your ChatGPT conversation when you want to continue. The demo uses general exploration as the goal.',
+    promptLabel: 'Follow-up prompt', copy: 'Copy prompt', close: 'Close',
+    copied: 'Copied', copyStatus: 'Prompt copied. Paste it into your ChatGPT conversation.',
+    manualCopy: 'Automatic copying is unavailable. The prompt is selected; use your device’s Copy command.',
+    heads: ['What is it?', 'What problem does it solve?', 'What solution does it offer?', 'What are the use cases?', 'What is the technical approach?'],
+    goal: 'general exploration',
+    analyzePrompt: (url, goal) => `Analyze the GitHub repository ${url} for my current goal: ${goal}. Verify information against available README, docs, and relevant source code. Cover its purpose, problem, solution, typical use cases, technical approach, architecture, main modules, stack, setup, strengths, limitations, trade-offs, and learning value. Distinguish verified facts from inferences. Respond in English.`,
+    comparePrompt: (urls, goal) => `Compare the GitHub repositories ${urls.join(', ')} for my current goal: ${goal}. Use the five What dimensions (what it is, problem, solution, use cases, technical approach), and compare stack, maturity signals when verified, trade-offs, and learning/adoption value. Verify current facts, show a concise table, and recommend when to choose each. Respond in English.`
+  },
+  zh: {
+    heading: '探索 GitHub 仓库',
+    sub: count => `${count} 个示例仓库 · 像挑选商品一样快速浏览`,
+    language: '语言', repositories: '仓库列表',
+    details: '查看详情', hide: '收起详情', analyze: '深入分析',
+    github: 'GitHub', compare: '对比仓库',
+    stars: '星标', license: '许可证', checked: '核实日期',
+    disclaimer: '离线设计演示 · 简介和分类为示例内容，未核实的星标、许可证和活跃度均已省略。详情在本地展开；深入分析和对比仓库仅生成可复制的后续提示词。',
+    footer: 'V1 通过 ChatGPT 指令使用，原生卡片与控件取决于客户端。本 HTML 是独立的交互参考。',
+    modalTitle: '可直接使用的后续提示词',
+    modalHint: '需要继续时，将提示词复制到 ChatGPT 对话中。本演示以一般探索为目标。',
+    promptLabel: '后续提示词', copy: '复制提示词', close: '关闭',
+    copied: '已复制', copyStatus: '提示词已复制，可粘贴到 ChatGPT 对话中。',
+    manualCopy: '无法自动复制。提示词已选中，请使用设备的复制命令。',
+    heads: ['这是什么项目？', '它解决什么问题？', '它提供什么解决方案？', '有哪些实际使用场景？', '它采用什么技术方案？'],
+    goal: '一般探索',
+    analyzePrompt: (url, goal) => `请深入分析 GitHub 仓库 ${url}，并结合我当前的目标：${goal}。尽可能核实 README、官方文档及相关源码，说明项目定位、解决的问题、解决方案、应用场景、技术方案、整体架构、主要模块、技术栈、部署方式、优缺点、技术取舍与学习价值。请区分已核实事实和推断，并用中文回答。`,
+    comparePrompt: (urls, goal) => `请对比以下 GitHub 仓库：${urls.join('、')}。结合我当前的目标：${goal}，从五个维度（项目定位、解决的问题、解决方案、实际使用场景、技术方案）出发，补充技术栈、可核实的成熟度指标、主要取舍、学习与采用价值。核实关键事实，给出简洁对比表及各项目适用场景建议。请用中文回答。`
+  }
+};
+
+// Leave metadata absent unless each value has a checked source and date.
+// Optional shape: metadata: { stars: { value, source, checkedAt }, license: { value, source, checkedAt } }.
+// A custom license value must be localized explicitly, e.g. { en: 'Custom license', zh: '自定义许可证' }.
+const repos = [
+  {
+    id: 'dify', name: 'Dify', slug: 'langgenius/dify',
+    url: 'https://github.com/langgenius/dify',
+    en: {
+      pitch: 'Build, deploy, and manage AI applications using visual workflows, RAG, and Agents.',
+      tags: ['Python', 'TypeScript', 'Agent', 'RAG', 'Low-code'], category: 'AI platform',
+      whats: [
+        'An open-source platform for building, deploying, and managing AI applications.',
+        'Production AI apps need model integration, RAG, orchestration, tools, and deployment infrastructure.',
+        'A unified workspace for visual workflows, RAG pipelines, Agents, and model integration.',
+        'Knowledge assistants, AI support, workflow automation, and rapid prototyping.',
+        'Visual orchestration coupled with model adapters, knowledge retrieval, tool calls, and deployment APIs.'
+      ]
+    },
+    zh: {
+      pitch: '通过可视化工作流、RAG 和 Agent，快速构建、部署和管理 AI 应用。',
+      tags: ['Python', 'TypeScript', 'Agent', 'RAG', '低代码'], category: 'AI 应用平台',
+      whats: [
+        '一个开源的 AI 应用开发、部署和管理平台。',
+        '开发生产级 AI 应用需要整合模型、RAG、任务编排、工具和部署基础设施。',
+        '提供可视化工作流、RAG Pipeline、Agent 能力和模型集成的统一工作空间。',
+        '企业知识助手、AI 客服、工作流自动化及 AI 产品原型开发。',
+        '结合可视化编排、模型适配器、知识检索、工具调用和部署 API。'
+      ]
+    }
+  },
+  {
+    id: 'langgraph', name: 'LangGraph', slug: 'langchain-ai/langgraph',
+    url: 'https://github.com/langchain-ai/langgraph',
+    en: {
+      pitch: 'Build stateful, durable Agent workflows with checkpointing and human-in-the-loop.',
+      tags: ['Python', 'Agent', 'State', 'Workflow'], category: 'Agent framework',
+      whats: [
+        'A framework for orchestrating stateful, long-running AI Agents.',
+        'Complex Agents need state management, recovery, and human approval.',
+        'Graph orchestration, durable state, checkpoints, and human-in-the-loop capabilities.',
+        'Multistep automation, approval workflows, and multi-Agent collaboration.',
+        'Nodes and edges describe control flow; state and checkpoints support execution.'
+      ]
+    },
+    zh: {
+      pitch: '用于构建可靠、有状态、支持持久化和人工介入的 Agent 工作流。',
+      tags: ['Python', 'Agent', '状态管理', '工作流'], category: 'Agent 框架',
+      whats: [
+        '一个用于编排有状态、长时间运行的 AI Agent 的框架。',
+        '复杂 Agent 需要可靠的状态管理、恢复与人工审批。',
+        '提供图编排、持久化状态、Checkpoint 与 Human-in-the-loop 能力。',
+        '多步骤 AI 自动化、审批流程和多 Agent 协作。',
+        '以节点与边表示控制流，结合 State 与 Checkpoint 管理执行。'
+      ]
+    }
+  },
+  {
+    id: 'deeptutor', name: 'DeepTutor', slug: 'HKUDS/DeepTutor',
+    url: 'https://github.com/HKUDS/DeepTutor',
+    en: {
+      pitch: 'A personalized AI learning workspace combining knowledge, tutoring, practice, and research.',
+      tags: ['Python', 'Agent', 'RAG', 'Education'], category: 'AI learning app',
+      whats: [
+        'An open-source workspace for long-term personalized AI tutoring.',
+        'Learning resources, Q&A and practice can be fragmented without durable context.',
+        'Unifies knowledge, an AI tutor, quizzes, and learning paths.',
+        'Self-study, paper reading, knowledge Q&A, and revision.',
+        'Agents, tool calls, and retrieval modules cooperate around a learning context.'
+      ]
+    },
+    zh: {
+      pitch: '融合知识库、智能辅导、练习与研究能力的个性化 AI 学习工作台。',
+      tags: ['Python', 'Agent', 'RAG', '教育'], category: 'AI 学习工具',
+      whats: [
+        '一个面向长期学习的开源 AI 个性化辅导工作空间。',
+        '学习内容、答疑与练习割裂，缺少连贯的学习上下文。',
+        '将知识库、AI Tutor、测验与学习路径整合到同一空间。',
+        '课程自学、论文精读、知识问答与复习。',
+        'Agent 工具调用与检索模块协同，为学习流程提供上下文。'
+      ]
+    }
+  }
+];
+
+let locale = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+let currentPrompt = '';
+let promptOpener = null;
+const $ = id => document.getElementById(id);
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function repoIcon() {
+  const box = el('div', 'logo');
+  box.setAttribute('aria-hidden', 'true');
+  // A neutral repository icon, not an invented project logo or downloaded asset.
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  const path = document.createElementNS(svg.namespaceURI, 'path');
+  path.setAttribute('d', 'M6 3h13v18H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3Zm0 0v12m-3 3a3 3 0 0 1 3-3h13M9 6h6M9 9h4');
+  svg.append(path); box.append(svg);
+  return box;
+}
+function renderMetadata(repo, t) {
+  const meta = el('div', 'meta');
+  for (const key of ['stars', 'license']) {
+    const item = repo.metadata?.[key];
+    // Missing or unsourced values are not evidence. The demo performs no live checks.
+    if (!item || typeof item.source !== 'string' ||
+        !(item.source === repo.url || item.source.startsWith(`${repo.url}/`)) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(item.checkedAt || '') ||
+        !Number.isFinite(Date.parse(item.checkedAt))) continue;
+    const value = typeof item.value === 'object' ? item.value?.[locale] : item.value;
+    if (value === undefined || value === null || value === '') continue;
+    const source = el('a', '', `${t[key]}: ${value}`);
+    source.href = item.source; source.target = '_blank'; source.rel = 'noopener noreferrer';
+    const checked = el('time', '', `${t.checked}: ${item.checkedAt}`);
+    checked.dateTime = item.checkedAt;
+    meta.append(source, checked);
+  }
+  meta.append(el('span', '', repo[locale].category));
+  return meta;
+}
+function syncDetails(details) {
+  const isOpen = details.open;
+  details.querySelector('.details-label').textContent = isOpen ? copy[locale].hide : copy[locale].details;
+  details.querySelector('summary').setAttribute('aria-expanded', String(isOpen));
+}
+function renderCards() {
+  const t = copy[locale];
+  const cards = repos.map(repo => {
+    const data = repo[locale];
+    const card = el('article', 'card');
+    card.dataset.repo = repo.slug;
+    card.setAttribute('aria-labelledby', `${repo.id}-name`);
+    const identity = el('div', 'identity');
+    const title = el('div');
+    const name = el('h2', 'name', repo.name); name.id = `${repo.id}-name`;
+    title.append(name, el('p', 'repo-id', repo.slug), el('p', 'pitch', data.pitch));
+    identity.append(repoIcon(), title);
+    const tags = el('div', 'tags');
+    data.tags.forEach(tag => tags.append(el('span', 'tag', tag)));
+
+    const disclosure = el('details', 'repo-details');
+    disclosure.name = 'repositories';
+    const summary = el('summary', 'details-button');
+    summary.setAttribute('aria-controls', `${repo.id}-details`);
+    summary.setAttribute('aria-expanded', 'false');
+    const chevron = el('span', 'chevron'); chevron.setAttribute('aria-hidden', 'true');
+    summary.append(chevron, el('span', 'details-label', t.details));
+    const panel = el('div', 'details'); panel.id = `${repo.id}-details`;
+    data.whats.forEach((answer, index) => {
+      const group = el('section', 'detail');
+      group.append(el('h3', 'detail-title', t.heads[index]), el('p', 'detail-body', answer));
+      panel.append(group);
+    });
+    disclosure.append(summary, panel);
+    disclosure.addEventListener('toggle', () => {
+      // Also enforce exclusivity on browsers without native details[name] support.
+      if (disclosure.open) {
+        document.querySelectorAll('.repo-details').forEach(other => {
+          if (other !== disclosure) { other.open = false; syncDetails(other); }
+        });
+      }
+      syncDetails(disclosure);
+    });
+
+    const actions = el('div', 'actions');
+    const analyze = el('button', 'btn primary', t.analyze); analyze.type = 'button';
+    analyze.addEventListener('click', () => openPrompt(t.analyzePrompt(repo.url, t.goal), analyze));
+    const github = el('a', 'btn', t.github);
+    github.href = repo.url; github.target = '_blank'; github.rel = 'noopener noreferrer';
+    actions.append(analyze, github);
+    card.append(identity, tags, renderMetadata(repo, t), el('div', 'divider'), disclosure, actions);
+    return card;
+  });
+  $('cards').replaceChildren(...cards);
+}
+function render() {
+  const t = copy[locale];
+  document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
+  document.title = locale === 'zh' ? 'Repo Shopping Cards — V1 演示' : 'Repo Shopping Cards — V1 Demo';
+  $('heading').textContent = t.heading;
+  $('subheading').textContent = t.sub(repos.length);
+  $('languageSwitch').setAttribute('aria-label', t.language);
+  $('cards').setAttribute('aria-label', t.repositories);
+  $('disclaimer').textContent = t.disclaimer; $('footer').textContent = t.footer;
+  $('compareBtn').textContent = t.compare;
+  $('zhBtn').setAttribute('aria-pressed', String(locale === 'zh'));
+  $('enBtn').setAttribute('aria-pressed', String(locale === 'en'));
+  renderCards();
+}
+function openPrompt(message, opener) {
+  const t = copy[locale];
+  currentPrompt = message; promptOpener = opener;
+  $('modalTitle').textContent = t.modalTitle; $('modalHint').textContent = t.modalHint;
+  $('promptPreview').value = message; $('promptPreview').setAttribute('aria-label', t.promptLabel);
+  $('promptStatus').textContent = ''; $('closeModal').textContent = t.close;
+  $('copyPrompt').textContent = t.copy;
+  $('promptModal').showModal();
+  $('promptPreview').focus();
+}
+async function copyPrompt() {
+  const message = currentPrompt;
+  const t = copy[locale];
+  try {
+    await navigator.clipboard.writeText(message);
+    if ($('promptModal').open && currentPrompt === message) {
+      $('copyPrompt').textContent = t.copied; $('promptStatus').textContent = t.copyStatus;
+    }
+  } catch {
+    if ($('promptModal').open && currentPrompt === message) {
+      $('promptPreview').focus(); $('promptPreview').select();
+      $('promptStatus').textContent = t.manualCopy;
+    }
+  }
+}
+for (const [buttonId, language] of [['zhBtn', 'zh'], ['enBtn', 'en']]) {
+  $(buttonId).addEventListener('click', () => { if (locale !== language) { locale = language; render(); } });
+}
+$('compareBtn').addEventListener('click', () => {
+  const visibleSlugs = [...$('cards').querySelectorAll('.card')].map(card => card.dataset.repo);
+  const urls = visibleSlugs.map(slug => repos.find(repo => repo.slug === slug).url);
+  const t = copy[locale];
+  openPrompt(t.comparePrompt(urls, t.goal), $('compareBtn'));
+});
+$('closeModal').addEventListener('click', () => $('promptModal').close());
+$('promptModal').addEventListener('close', () => {
+  currentPrompt = '';
+  if (promptOpener?.isConnected) promptOpener.focus();
+});
+$('promptModal').addEventListener('keydown', event => {
+  if (event.key !== 'Tab') return;
+  const first = $('promptPreview');
+  const last = $('copyPrompt');
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault(); last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault(); first.focus();
+  }
+});
+$('copyPrompt').addEventListener('click', copyPrompt);
+render();
+</script>
+</body>
+</html>
